@@ -5,12 +5,24 @@
 #include <math.h>
 #include <string.h>
 
+static const int prio_to_weight[40] = {
+        /* -20 */ 88761, 71755, 56483, 46273, 36291,
+        /* -15 */ 29154, 23254, 18705, 14949, 11916,
+        /* -10 */ 9548, 7620, 6100, 4904, 3906,
+        /* -5 */ 3121, 2501, 1991, 1586, 1277,
+        /* 0 */ 1024, 820, 655, 526, 423,
+        /* 5 */ 335, 272, 215, 172, 137,
+        /* 10 */ 110, 87, 70, 56, 45,
+        /* 15 */ 36, 29, 23, 18, 15,
+        };
+
 typedef struct process_details
 {
   char process_name[50];
   int arrival_time;
   int burst_time;
-  int nice;  
+  int nice;
+  int weight;  
 }pd;
 
 typedef struct node
@@ -28,10 +40,90 @@ typedef struct queue2
 } q2;
 */
 
+//Sorting according to weight
+node* sort_wt(node* head)
+{
+	int max=0;
+	node* maxwt;
+	node* newq = NULL;
+	node* pres;
+	while(head->next!=head)
+	{
+		pres = head;
+		while(pres->next!=head)
+		{
+			if(pres->details.weight>max)
+			{
+				max = pres->details.weight;
+				maxwt=pres;
+			}
+			pres=pres->next;
+		}
+
+		if(pres->details.weight>max)
+                {
+                	max = pres->details.weight;
+                        maxwt=pres;
+                }
+
+		node* prev = head;
+		
+		while(prev->next!=maxwt)
+			prev=prev->next;
+		
+		if(newq==NULL)
+		{
+			newq = maxwt;
+			prev->next = maxwt->next;
+			maxwt->next = maxwt;
+		}
+		else
+		{
+			pres = newq;
+			while(pres->next!=newq)
+				pres = pres->next;
+			pres->next = maxwt;
+			prev->next = maxwt->next;
+			maxwt->next = newq;
+		}
+
+	}
+	pres = newq;
+        while(pres->next!=newq)
+        	pres = pres->next;
+        pres->next = head;
+        head->next = newq;
+	head=NULL;
+	return newq;
+	
+}
+
 //function q1
 void schedule_q1(node* head, int n)
 {
-
+	int nice;
+	node* pres=head;
+	while(pres->next!=head)
+	{
+		nice = pres->details.nice;
+		pres->details.weight = prio_to_weight[nice+20];
+		//printf("Weight: %d Nice: %d\n",pres->details.weight, nice); 
+		pres=pres->next;
+	}
+	nice = pres->details.nice;
+        pres->details.weight = prio_to_weight[nice+20];
+        //printf("Weight: %d Nice: %d\n",pres->details.weight, nice);
+    
+	head = sort_wt(head);
+	pres = head;
+	while(pres->next!=head)
+	{
+		printf("Weight: %d Nice: %d\n",pres->details.weight, nice);
+		pres=pres->next;
+	}
+	printf("Weight: %d Nice: %d\n",pres->details.weight, nice);
+        pres=pres->next;
+	
 }
 
 //function q2
@@ -147,7 +239,6 @@ int main()
         char previous[50];
         int num_procs,min_cong;
         int i=0;
-
 
         printf("Enter filename: ");
         fgets(filename, 200, stdin);
