@@ -10,6 +10,7 @@ typedef struct process_details
   char process_name[50];
   int arrival_time;
   int burst_time;
+  int nice;  
 }pd;
 
 typedef struct node
@@ -63,7 +64,7 @@ void schedule_q2(node* head, int n, int total)
 			}
 		}
 		else
-		{
+		{	
 			total-=tq;
 			head->details.burst_time-=tq;
 			printf("%s: Time remaining = %d\n",head->details.process_name, head->details.burst_time);
@@ -112,7 +113,7 @@ void partition(int n, pd arr[n], int avg)
            	    q2->next = new;
         }
     }
-    /*
+    /*  
     node* curr;
     curr=q1;
     printf("Queue1");
@@ -201,6 +202,10 @@ int main()
                                                                 break;
                                                         case 3: //printf("In case 3\n");
                                                                 arr[i].arrival_time = atoi(value);
+								break;
+                                                                //printf("i- %d, arr[i]->arrival time - %d\n",i,arr[i].arrival_time);
+							case 4: //printf("In case 3\n");
+                                                                arr[i].nice = atoi(value);
                                                                 //printf("i- %d, arr[i]->arrival time - %d\n",i,arr[i].arrival_time);
                                                                 i++;
                                                                 break;
@@ -227,7 +232,7 @@ int main()
         int avg=0;
         for(int j=0;j<i;j++)
         {
-                printf("Process: %s, Arrival Time: %d, Burst time:%d\n",arr[j].process_name,arr[j].arrival_time,arr[j].burst_time);
+                printf("Process: %s, Arrival Time: %d, Burst time: %d, Nice value: %d\n",arr[j].process_name,arr[j].arrival_time,arr[j].burst_time,arr[j].nice);
                 avg += arr[j].burst_time;
         }
 	avg = avg/i;
