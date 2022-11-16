@@ -1,12 +1,13 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sched.h>
+//#include <sched.h>
 #include <math.h>
 #include <string.h>
 
 typedef struct process_details
 {
-  char process_name[10];
+  char process_name[50];
   int arrival_time;
   int burst_time;
 }pd;
@@ -32,48 +33,50 @@ void schedule_q1(node* head, int n)
 
 }
 
+//function q2
 void schedule_q2(node* head, int n, int total)
 {
-        int tq = total/n;
-        node* prev=head;
-        node* curr;
-        head = head->next;
-        int i=0;
-        while(head!=NULL)
-        {
-                if(head->details.burst_time<=tq)
-                {
-                        total-=head->details.burst_time;
-                        printf("%s done and removed\n",head->details.process_name);
-                        printf("Time quantum: %d\n", tq);
-                        if(prev->next==prev)
-                        {
-                                curr=head;
-                                head=NULL;
-                                free(curr);
-                        }
-                        else
-                        {
-                                prev->next=head->next;
-                                curr=head;
-                                head=prev->next;
-                                free(curr);
-                        }
-                }
-                else
-                {
-                        total-=tq;
-                        head->details.burst_time-=tq;
-                        printf("%s: Time remaining = %d\n",head->details.process_name, head->details.burst_time);
-                        printf("Time quantum: %d\n", tq);
-                }
-                i++;
-                if(i%n==0)
-                {
-                        tq=(tq+total)/n;
-                }
-        }
+	int tq = total/n;
+	node* prev=head;
+	node* curr;
+	head = head->next;
+	int i=0;
+	while(head!=NULL)
+	{
+		if(head->details.burst_time<=tq)
+		{
+			total-=head->details.burst_time;
+			printf("%s done and removed\n",head->details.process_name);
+			printf("Time quantum: %d\n", tq);
+			if(prev->next==prev)
+			{
+				curr=head;
+				head=NULL;
+				free(curr);
+			}
+			else
+			{
+				prev->next=head->next;
+				curr=head;
+				head=prev->next;
+				free(curr);
+			}
+		}
+		else
+		{
+			total-=tq;
+			head->details.burst_time-=tq;
+			printf("%s: Time remaining = %d\n",head->details.process_name, head->details.burst_time);
+			printf("Time quantum: %d\n", tq);
+		}
+		i++;
+		if(i%n==0)
+		{
+			tq=(tq+total)/n;
+		}
+	}
 }
+
 
 // function to make the queues
 void partition(int n, pd arr[n], int avg)
@@ -88,28 +91,28 @@ void partition(int n, pd arr[n], int avg)
         node* new;
         new = (node*)malloc(sizeof(node));
         new->details = arr[i];
-        new->next = new;
+	new->next = new;
         if(arr[i].burst_time <= avg)
         {
-            n1++;
+	    n1++;
             if(q1==NULL)
-                q1=new;
-            else
-                new->next=q1->next;
-                q1->next=new;
+		q1=new;
+	    else
+		new->next=q1->next;
+	    	q1->next=new;
         }
         else
         {
-            n2++;
-            total_q2 += arr[i].burst_time;
-            if(q2==NULL)
-                    q2=new;
-            else
-                    new->next = q2->next;
-                    q2->next = new;
+	    n2++;
+	    total_q2 += arr[i].burst_time;
+	    if(q2==NULL)
+		    q2=new;
+	    else
+	    	    new->next = q2->next;
+           	    q2->next = new;
         }
     }
-    /*  
+    /*
     node* curr;
     curr=q1;
     printf("Queue1");
@@ -133,38 +136,102 @@ void partition(int n, pd arr[n], int avg)
 
 int main()
 {
-    pd* arr;
-    //pd arr[4];
-    int n = 4;
-    arr = (pd*)malloc(n*sizeof(pd));
-    strcpy(arr[0].process_name, "P0");
-    arr[0].arrival_time = 0;
-    arr[0].burst_time = 12;
-
-    strcpy(arr[1].process_name, "P1");
-    arr[1].arrival_time = 0;
-    arr[1].burst_time = 34;
-
-    strcpy(arr[2].process_name, "P2");
-    arr[2].arrival_time = 0;
-    arr[2].burst_time = 8;
-
-    strcpy(arr[3].process_name, "P3");
-    arr[3].arrival_time = 0;
-    arr[3].burst_time = 19;
+    	pd* arr;
+	char buffer[1024];
+        FILE *file;
+        char *newline;
+        int row,column;
+        char filename[200];
+        char* value;
+        char previous[50];
+        int num_procs,min_cong;
+        int i=0;
 
 
-    int avg = (arr[0].burst_time + arr[1].burst_time + arr[2].burst_time + arr[3].burst_time) / 4;
-    printf("avg bt = %d \n", avg);
+        printf("Enter filename: ");
+        fgets(filename, 200, stdin);
+        if(filename == NULL)
+        {
+                return 0;
+        }
+        //printf("Check1: %s\n", filename);
+        newline = strchr(filename, '\n');
+        if(newline != NULL)
+                *newline = '\0';
 
-    /*
-    for(int i=0;i<4;i++)
-    {
-        printf("Process: %s, Arrival Time: %d, Burst time: %d\n",arr[i].process_name,arr[i].arrival_time,arr[i].burst_time);
-    }
-    */
+	file=fopen(filename,"r");
+        if(file)
+        {
+                while(fgets(buffer,1024,file))
+                {
+                        column = 0;
+                        //fputs(buffer,stdout);
+                        value = strtok(buffer," ");
+                        //printf("Check 2:%s\n",value);
+                        while(value)
+                        {
+                                //printf("Check 3: %s\n",value);
+                                if(column==0)
+                                        strcpy(previous,value);
+                                else
+                                {
+                                        if(strcmp(previous,"MAXPROCESSES")==0)
+                                        {
+                                                //printf("In maxprocesses\n");
+                                                num_procs = atoi(value);
+                                                arr = (pd*)malloc(num_procs*sizeof(pd));
+                                        }
+                                        else if(strcmp(previous,"PSG")==0)
+                                        {
+                                                //printf("In psg");
+                                                min_cong = atoi(value);
+                                        }
+                                        else if(strcmp(previous,"SUBMIT")==0)
+                                        {
+                                                //printf("In submit");
+                                                switch(column)
+                                                {
+                                                        case 1: //printf("In case 1\n");
+                                                                strcpy(arr[i].process_name,value);
+                                                                //printf("i- %d, arr[i]->process_name - %s\n",i,arr[i].process_name);
+                                                                break;
+							case 2: //printf("In case 2\n");
+                                                                arr[i].burst_time = atoi(value);
+                                                                //printf("i- %d, arr[i]->burst time - %d\n",i,arr[i].burst_time);
+                                                                break;
+                                                        case 3: //printf("In case 3\n");
+                                                                arr[i].arrival_time = atoi(value);
+                                                                //printf("i- %d, arr[i]->arrival time - %d\n",i,arr[i].arrival_time);
+                                                                i++;
+                                                                break;
+                                                }
+                                        }
+                                        else//previous - PRINT
+                                        {
+                                                //To-do
+                                                break;
+                                        }
+                                }
+                                column++;
+                                value = strtok(NULL, " ");
+                        }
+                }
+                printf("Check 3: End of file\n");
+                fclose(file);
+        }
 
-    partition(n,arr,avg);
+        else
+                printf("File not found");
 
-    return 0;
+        printf("Num procs: %d\n", num_procs);
+        int avg=0;
+        for(int j=0;j<i;j++)
+        {
+                printf("Process: %s, Arrival Time: %d, Burst time:%d\n",arr[j].process_name,arr[j].arrival_time,arr[j].burst_time);
+                avg += arr[j].burst_time;
+        }
+	avg = avg/i;
+	printf("avg: %d\n",avg);
+	partition(num_procs,arr,avg);
+	return 0;
 }
