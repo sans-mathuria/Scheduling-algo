@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <sched.h>
+#include <sched.h>
 #include <math.h>
 #include <string.h>
 #include <stdbool.h>
@@ -45,7 +45,6 @@ typedef struct queue2
 } q2;
 */
 
-void schedule_q2(node* head, int n, int total);
 
 //Sorting according to weight
 node* sort_wt(node* head)
@@ -114,16 +113,17 @@ node* calc_vruntime(node* head)
 {
 	
 }
-
+int time = 0;
 //function q1
 void schedule_q1(node* head, int n)
 {
-	int time = 0;
+	//int time = 0;
 	float tat[n],wt[n];
 	float sched_latency = 48;
 	int nice;
 	float temp_time;
 	float tot_weight=0;
+
 	node* pres=head;
 	while(pres->next!=head)
 	{
@@ -132,7 +132,7 @@ void schedule_q1(node* head, int n)
 		pres->details.remaining_time = pres->details.burst_time;
 		nice = pres->details.nice;
 		pres->details.weight = prio_to_weight[nice+20];
-		printf("Process %s: Nice: %d Weight: %f\n",pres->details.process_name,pres->details.nice,pres->details.weight);
+		//printf("Process %s: Nice: %d Weight: %f\n",pres->details.process_name,pres->details.nice,pres->details.weight);
 		tot_weight += pres->details.weight;
 		pres=pres->next;
 	}
@@ -141,9 +141,9 @@ void schedule_q1(node* head, int n)
 	pres->details.remaining_time = pres->details.burst_time;
 	pres->details.vrun=0;
         pres->details.weight = prio_to_weight[nice+20];
-	printf("Process %s: Nice: %d Weight: %f\n",pres->details.process_name,pres->details.nice,pres->details.weight);
+	//printf("Process %s: Nice: %d Weight: %f\n",pres->details.process_name,pres->details.nice,pres->details.weight);
 	tot_weight += pres->details.weight;
-	printf("Total weight = %f\n",tot_weight);
+	//printf("Total weight = %f\n",tot_weight);
     	
 	
 	pres = head;
@@ -151,12 +151,12 @@ void schedule_q1(node* head, int n)
 	{
 		temp_time = (pres->details.weight*sched_latency)/tot_weight;
 		pres->details.time_slice = (int) temp_time;
-		printf("Process: %s Time Slice: %d\n",pres->details.process_name, pres->details.time_slice);
+		//printf("Process: %s Time Slice: %d\n",pres->details.process_name, pres->details.time_slice);
 		pres=pres->next;
 	}
 	temp_time = (pres->details.weight*sched_latency)/tot_weight;
         pres->details.time_slice = (int) temp_time;
-	printf("Process: %s Time Slice: %d\n",pres->details.process_name, pres->details.time_slice);
+	//printf("Process: %s Time Slice: %d\n",pres->details.process_name, pres->details.time_slice);
 	
 	int i=0;	
 	//node* new_head = sort_wt(head);
@@ -166,13 +166,16 @@ void schedule_q1(node* head, int n)
 	pres = head;
 	head=head->next;
 	*/
+	printf("n in q1%d\n",n);
 	while(n>0)
+	//while(head!=NULL)
 	{
 		if(head->details.completed==false)
-		{
+		{		
 			if(head->details.remaining_time<=head->details.time_slice)
 			{
 				time+=head->details.remaining_time;
+				head->details.remaining_time = 0;
 				//total-=head->details.burst_time;
 				//printf("%s done and removed\n",head->details.process_name);
 				//printf("Time quantum: %d\n", tq);
@@ -211,72 +214,87 @@ void schedule_q1(node* head, int n)
 				time+=head->details.time_slice;
 				//total-=tq;
 				head->details.remaining_time-=head->details.time_slice;
-				head->details.vrun+=(int) ((1024.0/head->details.weight)*head->details.time_slice);
+				head->details.vrun+=(int) ((1024.0/head->details.weight)*(head->details.time_slice));
 				head->details.time_slice = (int) ((head->details.weight/tot_weight)*sched_latency);
-				printf("Process %s Time Slice: %d Vrun: %d\n",head->details.process_name,head->details.time_slice,head->details.vrun);
+				printf("Process %s Time Slice: %d Vrun: %d Time Remaining: %d\n",head->details.process_name,head->details.time_slice,head->details.vrun,head->details.remaining_time);
 		       		
 				//printf("%s: Time remaining = %d\n",head->details.process_name, head->details.burst_time);
 				//printf("Time quantum: %d\n", tq);
 
 			}
-		
 			i++;
-			head=head->next;
-			//prev=prev->next;
-		}	
+			//prev = prev->next;
+		}
+		head = head->next;	
 	}	
-
-
+	return;
 }
 
 //function q2
 void schedule_q2(node* head, int n, int total)
 {
 	int tq = total/n;
-	int final = 0;
-	node* prev=head;
-	node* curr;
-	head = head->next;
 	int i=0;
+	int counter = n;
 	int tat[n], wt[n];
-	while(head!=NULL)
+
+	node* pres = head;
+	while(pres->next!=head)
 	{
-		if(head->details.burst_time<=tq)
+		pres->details.remaining_time = pres->details.burst_time;
+		pres = pres->next;
+	}
+	pres->details.remaining_time = pres->details.burst_time;
+
+	while(counter>0)
+	//while(head!=NULL)
+	{
+		if(head->details.completed == false)
 		{
-			final+=head->details.burst_time;
-			total-=head->details.burst_time;
-			//printf("%s done and removed\n",head->details.process_name);
-			printf("Time quantum: %d\n", tq);
-			tat[i] = final-(head->details.arrival_time);
-			wt[i]=tat[i] - (head->details.burst_time);	
-			printf("Process %s: Waiting time:%d TAT: %d\n",head->details.process_name,wt[i] ,tat[i]); 
-			if(prev->next==prev)
+			if(head->details.remaining_time<=tq)
 			{
-				curr=head;
-				head=NULL;
-				free(curr);
+				time+=head->details.remaining_time;
+				head->details.remaining_time = 0;
+				total-=head->details.burst_time;
+				//printf("%s done and removed\n",head->details.process_name);
+				printf("Time quantum: %d\n", tq);
+				tat[i] = time-(head->details.arrival_time);
+				wt[i]=tat[i] - (head->details.burst_time);	
+				printf("Process %s: Waiting time:%d TAT: %d\n",head->details.process_name,wt[i] ,tat[i]); 
+				/*
+				if(prev->next==prev)
+				{
+					curr=head;
+					head=NULL;
+					free(curr);
+				}
+				else
+				{
+					prev->next=head->next;
+					curr=head;
+					head=prev->next;
+					free(curr);
+				}
+				*/
+				head->details.completed = true;
+				counter--;
 			}
 			else
-			{
-				prev->next=head->next;
-				curr=head;
-				head=prev->next;
-				free(curr);
+			{	
+				time+=tq;
+				total-=tq;
+				head->details.remaining_time-=tq;
+				printf("%s: Time remaining = %d\n",head->details.process_name, head->details.remaining_time);
+				printf("Time quantum: %d\n", tq);
 			}
+			i++;
+			if(i%n==0 && i!=1)
+			{
+				tq=(tq+total)/n;
+			}
+			//prev = prev->next;
 		}
-		else
-		{	
-			final+=tq;
-			total-=tq;
-			head->details.burst_time-=tq;
-			//printf("%s: Time remaining = %d\n",head->details.process_name, head->details.burst_time);
-			//printf("Time quantum: %d\n", tq);
-		}
-		i++;
-		if(i%n==0)
-		{
-			tq=(tq+total)/n;
-		}
+		head = head->next;
 	}
 }
 
@@ -292,6 +310,7 @@ void partition(int n, pd arr[n], int avg)
     for(int i=0;i<n;i++)
     {
         node* new;
+	node* pres;
         new = (node*)malloc(sizeof(node));
         new->details = arr[i];
 	new->next = new;
@@ -301,8 +320,13 @@ void partition(int n, pd arr[n], int avg)
             if(q1==NULL)
 		q1=new;
 	    else
-		new->next=q1->next;
-	    	q1->next=new;
+	    {
+		pres=q1;
+		while(pres->next!=q1)
+			pres=pres->next;
+		pres->next = new;
+		new->next = q1;
+	    }
         }
         else
         {
@@ -311,8 +335,13 @@ void partition(int n, pd arr[n], int avg)
 	    if(q2==NULL)
 		    q2=new;
 	    else
-	    	    new->next = q2->next;
-           	    q2->next = new;
+	    {
+		    pres = q2;
+		    while(pres->next!=q2)
+			    pres = pres->next;
+		    pres->next = new;
+		    new->next = q2;
+	    }
         }
     }
     schedule_q1(q1,n1);
