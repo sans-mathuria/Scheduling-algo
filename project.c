@@ -159,6 +159,7 @@ void schedule_q1(node* head, int n)
 	//printf("Process: %s Time Slice: %d\n",pres->details.process_name, pres->details.time_slice);
 	
 	int i=0;	
+	int counter = n;
 	//node* new_head = sort_wt(head);
 	/*
 	node* curr;
@@ -166,8 +167,8 @@ void schedule_q1(node* head, int n)
 	pres = head;
 	head=head->next;
 	*/
-	printf("n in q1%d\n",n);
-	while(n>0)
+	//printf("n in q1 %d\n",n);
+	while(counter>0)
 	//while(head!=NULL)
 	{
 		if(head->details.completed==false)
@@ -189,7 +190,7 @@ void schedule_q1(node* head, int n)
 					tat[i] = time - (head->details.arrival_time);
 					wt[i]=	tat[i] - (head->details.burst_time);
 				}		
-				printf("Process %s: Waiting time:%f TAT: %f\n",head->details.process_name,wt[i] ,tat[i]); 
+				printf("\n\nProcess %s: Waiting time:%f TAT: %f\n",head->details.process_name,wt[i] ,tat[i]); 
 				tot_weight-=head->details.weight;
 				/*
 				if(prev->next==prev)
@@ -207,7 +208,7 @@ void schedule_q1(node* head, int n)
 				}
 				*/
 				head->details.completed=true;
-				n--;
+				counter--;
 			}
 			else
 			{	
@@ -216,7 +217,7 @@ void schedule_q1(node* head, int n)
 				head->details.remaining_time-=head->details.time_slice;
 				head->details.vrun+=(int) ((1024.0/head->details.weight)*(head->details.time_slice));
 				head->details.time_slice = (int) ((head->details.weight/tot_weight)*sched_latency);
-				printf("Process %s Time Slice: %d Vrun: %d Time Remaining: %d\n",head->details.process_name,head->details.time_slice,head->details.vrun,head->details.remaining_time);
+				printf("\n\nProcess %s Time Slice: %d Vrun: %d Time Remaining: %d\n",head->details.process_name,head->details.time_slice,head->details.vrun,head->details.remaining_time);
 		       		
 				//printf("%s: Time remaining = %d\n",head->details.process_name, head->details.burst_time);
 				//printf("Time quantum: %d\n", tq);
@@ -260,7 +261,7 @@ void schedule_q2(node* head, int n, int total)
 				printf("Time quantum: %d\n", tq);
 				tat[i] = time-(head->details.arrival_time);
 				wt[i]=tat[i] - (head->details.burst_time);	
-				printf("Process %s: Waiting time:%d TAT: %d\n",head->details.process_name,wt[i] ,tat[i]); 
+				printf("\n\nProcess %s: Waiting time:%d TAT: %d\n",head->details.process_name,wt[i] ,tat[i]); 
 				/*
 				if(prev->next==prev)
 				{
@@ -284,7 +285,7 @@ void schedule_q2(node* head, int n, int total)
 				time+=tq;
 				total-=tq;
 				head->details.remaining_time-=tq;
-				printf("%s: Time remaining = %d\n",head->details.process_name, head->details.remaining_time);
+				printf("\n\n%s: Time remaining = %d\n",head->details.process_name, head->details.remaining_time);
 				printf("Time quantum: %d\n", tq);
 			}
 			i++;
