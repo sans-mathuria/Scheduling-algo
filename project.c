@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+//#include <sched.h>
 #include <math.h>
 #include <string.h>
 #include <stdbool.h>
@@ -258,6 +259,49 @@ void partition(int n, pd arr[n], int avg, int min_gran)
 	return;
 }
 
+void round_robin(int n, pd arr[n])
+{
+  	int count,j,rr_time,remain,flag=0,time_quantum;
+  	int wait_time=0,turnaround_time=0;
+  	remain=n;
+	for(count=0;count<n;count++)
+	{
+		arr[count].remaining_time = arr[count].burst_time;
+	}
+	time_quantum = 48/n; //(sched_latency/n)
+ 	printf("\n\nProcess\tTAT\tWT\n\n");
+  	for(rr_time=0,count=0;remain!=0;)
+  	{
+		if(arr[count].remaining_time<=time_quantum && arr[count].remaining_time>0)
+		{
+			rr_time+=arr[count].remaining_time;
+			arr[count].remaining_time=0;
+			flag=1;
+		}
+		else if(arr[count].remaining_time>0)
+		{
+			arr[count].remaining_time-=time_quantum;
+			rr_time+=time_quantum;
+		}
+		if(arr[count].remaining_time==0 && flag==1)
+		{
+			remain--;
+			printf("%s\t%d\t%d\n",arr[count].process_name,rr_time-arr[count].arrival_time,rr_time-arr[count].arrival_time-arr[count].burst_time);
+			wait_time+=rr_time-arr[count].arrival_time-arr[count].burst_time;
+			turnaround_time+=rr_time-arr[count].arrival_time;
+			flag=0;
+		}
+		if(count==n-1)
+			count=0;
+		else if(arr[count+1].arrival_time<=rr_time)
+			count++;
+		else
+			count=0;
+  	}
+  printf("\nAverage Waiting Time= %f\n",wait_time*1.0/n);
+  printf("Avg Turnaround Time = %f",turnaround_time*1.0/n);
+}
+
 int main()
 {
 	pd *arr;
@@ -337,5 +381,7 @@ int main()
 	int avg = min_gran * num_procs;
 	printf("avg: %d\n", avg);
 	partition(num_procs, arr, avg, min_gran);
+
+	round_robin(num_procs,arr);
 	return 0;
 }
