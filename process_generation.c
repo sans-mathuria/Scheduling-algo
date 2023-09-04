@@ -10,7 +10,7 @@ int main()
 	int max_proc = 10;
 	int min_gran = 6;
 	FILE* fp;
-	fp = fopen("p11.txt","w");
+	fp = fopen("p35.txt","w");
 	fprintf(fp,"MAXPROCESSES %d\n",max_proc);
 	fprintf(fp,"PSG %d\n",min_gran);
     int at,bt,nice,prio;
@@ -19,7 +19,7 @@ int main()
     for (int i=0; i<max_proc; i++)
     {
     	at = 0;
-        bt = (rand() % (20 + 1 - 2)) + 2;
+        bt = (rand() % (100 + 1 - 5)) + 2;
         nice = (rand() % (19 + 1 - (-20))) + (-20);
         fprintf(fp,"SUBMIT P%d %d %d %d\n", i+1,bt,at,nice);
     }

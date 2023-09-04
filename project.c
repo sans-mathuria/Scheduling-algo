@@ -318,7 +318,7 @@ void partition(int n, pd arr[n], int avg, int min_gran)
 			}
 		}
 	}
-	printf("Process Name\tArrival time\tBurst time\tRunning time\tCompletion time\t\tTAT\t\t\t\tWT\n");
+	//printf("Process Name\tArrival time\tBurst time\tRunning time\tCompletion time\t\tTAT\t\t\t\tWT\n");
 	if(q1!=NULL)
 		schedule_q1(q1, n1, min_gran);
 	if(q2!=NULL)
@@ -571,7 +571,10 @@ void rrdtq(int n, pd arr[n])
 		if(count==n-1)
 		{
 			count=0;
-			avg_bt = tot_bt/remain;
+			if(remain)
+				avg_bt = tot_bt/remain;
+			else
+				avg_bt = tot_bt;
 			time_quantum = avg_bt;
 			//printf("\t time quantum: %d\n",time_quantum);
 		}
@@ -637,7 +640,10 @@ void nmarr(int n, pd arr[n])
 		{
 			count=0;
 
-			avg_bt = tot_bt/remain;
+			if(remain)
+				avg_bt = tot_bt/remain;
+			else
+				avg_bt = tot_bt;
 
 			median = find_median(n, remain, arr);
 			//printf("\t median: %d\n",median);
@@ -737,7 +743,8 @@ void erra(int n, pd arr[n])
 		arr[count].remaining_time = arr[count].burst_time;
 		tot_bt+=arr[count].burst_time;
 	}
-	time_quantum = tot_bt/n;
+	float t = tot_bt/n;
+	time_quantum = t;
 	//printf("\t time quantum: %d\n",time_quantum);
  	//printf("\n\nProcess\tTAT\tWT\n\n");
   	for(rr_time=0,count=0;remain!=0;)
@@ -774,8 +781,16 @@ void erra(int n, pd arr[n])
 		if(count==n-1)
 		{
 			count=0;
-			int temp = (tot_bt+time_quantum)/remain;
-			time_quantum = temp;
+			if(remain)	
+			{
+				float temp = (tot_bt+time_quantum)/remain;
+				time_quantum = temp;
+			}
+			else
+			{
+				float temp = (tot_bt+time_quantum);
+				time_quantum = temp;
+			}
 			//printf("\t time quantum: %d\n",time_quantum);
 		}
 		else if(arr[count+1].arrival_time<=rr_time)
